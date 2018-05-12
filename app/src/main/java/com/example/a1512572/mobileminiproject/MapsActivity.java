@@ -2,6 +2,7 @@ package com.example.a1512572.mobileminiproject;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
@@ -15,6 +16,10 @@ import android.widget.Toast;
 import com.akexorcist.googledirection.DirectionCallback;
 import com.akexorcist.googledirection.GoogleDirection;
 import com.akexorcist.googledirection.model.Direction;
+import com.akexorcist.googledirection.model.Leg;
+import com.akexorcist.googledirection.model.Route;
+import com.akexorcist.googledirection.model.Step;
+import com.akexorcist.googledirection.util.DirectionConverter;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -23,6 +28,10 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static android.location.LocationManager.PASSIVE_PROVIDER;
 
@@ -116,13 +125,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     public void onDirectionSuccess(Direction direction, String rawBody) {
                         if(direction.isOK()) {
                             Toast.makeText(MapsActivity.this,"Success!",Toast.LENGTH_LONG).show();
+                            Route route = direction.getRouteList().get(0);
+                            Leg leg = route.getLegList().get(0);
+                            ArrayList<LatLng> pointList = leg.getDirectionPoint();
+                            PolylineOptions polylineOptions = DirectionConverter.createPolyline(MapsActivity.this, pointList, 5, Color.RED);
+                            mMap.addPolyline(polylineOptions);
                         }
-                        Toast.makeText(MapsActivity.this,"is not OK!",Toast.LENGTH_LONG).show();
+                        else
+                            Toast.makeText(MapsActivity.this,"Error!",Toast.LENGTH_LONG).show();
                     }
 
                     @Override
                     public void onDirectionFailure(Throwable t) {
-                        Toast.makeText(MapsActivity.this,"Fall!",Toast.LENGTH_LONG).show();
+                        Toast.makeText(MapsActivity.this,"Error!",Toast.LENGTH_LONG).show();
                     }
                 });
     }
