@@ -12,6 +12,9 @@ import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.widget.Toast;
 
+import com.akexorcist.googledirection.DirectionCallback;
+import com.akexorcist.googledirection.GoogleDirection;
+import com.akexorcist.googledirection.model.Direction;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -26,6 +29,7 @@ import static android.location.LocationManager.PASSIVE_PROVIDER;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private static final int MY_LOCATION_REQUEST_CODE = 1;
+    private static final String DIRECTION_API_KEY = "AIzaSyBv_krOVfS_4axcL8u4ivtj-SaKFxz4E8M";
 
     private GoogleMap mMap;
     private LatLng myPosition;
@@ -53,7 +57,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     Manifest.permission.ACCESS_FINE_LOCATION)) {
             } else {
                 ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION},
                         MY_LOCATION_REQUEST_CODE);
             }}
 
@@ -71,7 +75,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             myPosMarkerOpt.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET));
             myMarker = mMap.addMarker(myPosMarkerOpt);
             mMap.moveCamera(CameraUpdateFactory.newLatLng(myPosition));
-            mMap.animateCamera( CameraUpdateFactory.zoomTo( 17.0f ) );
+            mMap.animateCamera( CameraUpdateFactory.zoomTo( 16.0f ) );
         }
 
         locationManager.requestLocationUpdates(PASSIVE_PROVIDER, 5000, 5, new LocationListener() {
@@ -85,7 +89,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 myMarker.setPosition(myPosition);
                 //mMap.addMarker(new MarkerOptions().position(myPosition).title("Vị trí của bạn"));
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(myPosition));
-                mMap.animateCamera( CameraUpdateFactory.zoomTo( 17.0f ) );
+                mMap.animateCamera( CameraUpdateFactory.zoomTo( 16.0f ) );
             }
 
             @Override
@@ -103,6 +107,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
+        LatLng destination = new LatLng(10.762427, 106.681228);
+        GoogleDirection.withServerKey(DIRECTION_API_KEY)
+                .from(myPosition)
+                .to(destination)
+                .execute(new DirectionCallback() {
+                    @Override
+                    public void onDirectionSuccess(Direction direction, String rawBody) {
+                        if(direction.isOK()) {
+                            Toast.makeText(MapsActivity.this,"Success!",Toast.LENGTH_LONG).show();
+                        }
+                        Toast.makeText(MapsActivity.this,"is not OK!",Toast.LENGTH_LONG).show();
+                    }
+
+                    @Override
+                    public void onDirectionFailure(Throwable t) {
+                        Toast.makeText(MapsActivity.this,"Fall!",Toast.LENGTH_LONG).show();
+                    }
+                });
     }
 
     @Override
