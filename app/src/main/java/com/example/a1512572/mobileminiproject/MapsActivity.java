@@ -1,6 +1,9 @@
 package com.example.a1512572.mobileminiproject;
 
 import android.Manifest;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.database.Cursor;
@@ -9,11 +12,14 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.akexorcist.googledirection.DirectionCallback;
@@ -32,6 +38,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.ArrayList;
@@ -49,7 +56,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private MarkerOptions myPosMarkerOpt;
     private Marker myMarker;
 
+    ArrayList<Marker> markerList;
+
+    Polyline way;
+    PolylineOptions wayopt;
+
     DatabaseHelper db;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,8 +86,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     MapStyleOptions.loadRawResourceStyle(
                             this, R.raw.style_json));
 
-            if (!success) {}
-        } catch (Resources.NotFoundException e) {}
+            if (!success) {showText("Không thể tải style cho map!");}
+        } catch (Resources.NotFoundException e) {showText("Không thể tải style cho map!");}
 
         //Check permission
         checkPermission();
@@ -103,11 +116,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 double longitude = location.getLongitude();
                 myPosition = new LatLng(latitude, longitude);
 
-                //myPosMarkerOpt.position(myPosition);
                 myMarker.setPosition(myPosition);
-                //mMap.addMarker(new MarkerOptions().position(myPosition).title("Vị trí của bạn"));
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(myPosition));
-                //mMap.animateCamera( CameraUpdateFactory.zoomTo( 12.0f ) );
             }
 
             @Override
@@ -126,30 +136,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
 
         loadCH();
-        /*LatLng destination = new LatLng(10.762427, 106.681228);
-        GoogleDirection.withServerKey(DIRECTION_API_KEY)
-                .from(myPosition)
-                .to(destination)
-                .execute(new DirectionCallback() {
-                    @Override
-                    public void onDirectionSuccess(Direction direction, String rawBody) {
-                        if(direction.isOK()) {
-                            Toast.makeText(MapsActivity.this,"Gửi yêu cầu tìm đường thành công",Toast.LENGTH_LONG).show();
-                            Route route = direction.getRouteList().get(0);
-                            Leg leg = route.getLegList().get(0);
-                            ArrayList<LatLng> pointList = leg.getDirectionPoint();
-                            PolylineOptions polylineOptions = DirectionConverter.createPolyline(MapsActivity.this, pointList, 10, Color.MAGENTA);
-                            mMap.addPolyline(polylineOptions);
-                        }
-                        else
-                            Toast.makeText(MapsActivity.this,"Xuất hiện lỗi khi gửi yêu cầu tìm đường!",Toast.LENGTH_LONG).show();
-                    }
 
-                    @Override
-                    public void onDirectionFailure(Throwable t) {
-                        Toast.makeText(MapsActivity.this,"Xuất hiện lỗi khi gửi yêu cầu tìm đường!",Toast.LENGTH_LONG).show();
-                    }
-                });*/
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+                                          @Override
+                                          public boolean onMarkerClick(Marker marker) {
+                                              markerClickEvent(marker);
+                                              return false;
+                                          }
+                                      });
     }
 
     public void loadCH(){
@@ -159,12 +153,107 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             return;
         }
         while (result.moveToNext()){
-            if (Integer.parseInt(result.getString(9)) > 0)
-                mMap.addMarker(new MarkerOptions().position(new LatLng(Double.parseDouble(result.getString(4)),Double.parseDouble(result.getString(5)))).title(result.getString(1)).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)));
-            else
-                mMap.addMarker(new MarkerOptions().position(new LatLng(Double.parseDouble(result.getString(4)),Double.parseDouble(result.getString(5)))).title(result.getString(1)).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+            if (!result.getString(10).equals("0"))
+                if (Integer.parseInt(result.getString(9)) > 0)
+                    mMap.addMarker(new MarkerOptions().position(new LatLng(Double.parseDouble(result.getString(4)),Double.parseDouble(result.getString(5)))).title(result.getString(1)).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE))).setSnippet(result.getString(3));
+                else
+                    mMap.addMarker(new MarkerOptions().position(new LatLng(Double.parseDouble(result.getString(4)),Double.parseDouble(result.getString(5)))).title(result.getString(1)).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))).setSnippet(result.getString(3));
         }
+
     }
+
+    private void showDirection(LatLng from, LatLng to){
+        GoogleDirection.withServerKey(DIRECTION_API_KEY)
+                .from(from)
+                .to(to)
+                .execute(new DirectionCallback() {
+                    @Override
+                    public void onDirectionSuccess(Direction direction, String rawBody) {
+                        if(direction.isOK()) {
+                            Route route = direction.getRouteList().get(0);
+                            Leg leg = route.getLegList().get(0);
+                            ArrayList<LatLng> pointList = leg.getDirectionPoint();
+
+                            if (way!=null)
+                            way.remove();
+                            wayopt = DirectionConverter.createPolyline(MapsActivity.this, pointList, 10, Color.MAGENTA);
+                            way = mMap.addPolyline(wayopt);
+                        }
+                        else
+                            showText("Xuất hiện lỗi khi gửi yêu cầu tìm đường!");
+                    }
+
+                    @Override
+                    public void onDirectionFailure(Throwable t) {
+                        showText("Xuất hiện lỗi khi gửi yêu cầu tìm đường!");
+                    }
+                });
+    }
+
+    private void markerClickEvent(final Marker marker){
+        if (marker.getTitle().equals(myMarker.getTitle()))
+            return;
+
+        Cursor result = db.getSpecCH(marker.getTitle());
+        result.moveToNext();
+        final String id = result.getString(0);
+        final String name = marker.getTitle();
+        final String desc = result.getString(2);
+        final String addr = marker.getSnippet();
+        final String lat = result.getString(4);
+        final String lng = result.getString(5);
+        final String open = result.getString(6);
+        final String close = result.getString(7);
+        final String phone = result.getString(8);
+        final String type = result.getString(9);
+        final String status = result.getString(10);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setCancelable(true);
+        builder.setTitle(marker.getTitle());
+        builder.setMessage(marker.getSnippet() + "\n" + open + " - " + close + "\n" + phone + "\n" + type + "\n" + status);
+
+        if (type.equals("0")){
+            builder.setPositiveButton("Yêu thích", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    db.updateCH(id, name, desc, addr, lat, lng, open, close, phone, "1", status);
+                    marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
+                }
+            });
+        }
+        else
+        {
+            builder.setPositiveButton("Hủy yêu thích", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    db.updateCH(id, name, desc, addr, lat, lng, open, close, phone, "0", status);
+                    marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
+                }
+            });
+        }
+
+        builder.setNegativeButton("Gọi", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                Intent intent = new Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", phone, null));
+                startActivity(intent);
+            }
+        });
+
+        builder.setNeutralButton("Dẫn đường", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                showDirection(myPosition, marker.getPosition());
+            }
+        });
+
+
+        builder.show();
+
+    }
+
+    //////
 
     private void checkPermission(){
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)

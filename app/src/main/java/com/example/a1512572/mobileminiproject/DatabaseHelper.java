@@ -155,6 +155,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return result;
     }
 
+    public Cursor getSpecCH(String name){
+        SQLiteDatabase db = this.getWritableDatabase();
+        //Cursor result = db.query(TABLE_NAME_CH, null, CH_COL_2, new String[] {name}, null, null, null);
+        Cursor result = db.query(true, TABLE_NAME_CH, null,
+                CH_COL_2 + "=?",
+                new String[] {name},
+                null, null, null, null);
+        return result;
+    }
+
     //Set initial data
 
     public boolean inputBTS(SQLiteDatabase db, String name, String value, String status){
