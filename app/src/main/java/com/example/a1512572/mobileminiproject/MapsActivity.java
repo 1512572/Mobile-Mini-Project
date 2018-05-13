@@ -3,6 +3,7 @@ package com.example.a1512572.mobileminiproject;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.location.Criteria;
 import android.location.Location;
@@ -48,6 +49,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private MarkerOptions myPosMarkerOpt;
     private Marker myMarker;
 
+    DatabaseHelper db;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,6 +59,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        db = new DatabaseHelper(this);
 
     }
 
@@ -72,15 +77,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         } catch (Resources.NotFoundException e) {}
 
         //Check permission
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    Manifest.permission.ACCESS_FINE_LOCATION)) {
-            } else {
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION},
-                        MY_LOCATION_REQUEST_CODE);
-            }}
+        checkPermission();
 
         mMap.setMyLocationEnabled(true);
 
@@ -96,7 +93,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             myPosMarkerOpt.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET));
             myMarker = mMap.addMarker(myPosMarkerOpt);
             mMap.moveCamera(CameraUpdateFactory.newLatLng(myPosition));
-            mMap.animateCamera( CameraUpdateFactory.zoomTo( 16.0f ) );
+            mMap.animateCamera( CameraUpdateFactory.zoomTo( 14.0f ) );
         }
 
         locationManager.requestLocationUpdates(PASSIVE_PROVIDER, 5000, 5, new LocationListener() {
@@ -110,7 +107,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 myMarker.setPosition(myPosition);
                 //mMap.addMarker(new MarkerOptions().position(myPosition).title("Vị trí của bạn"));
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(myPosition));
-                mMap.animateCamera( CameraUpdateFactory.zoomTo( 16.0f ) );
+                //mMap.animateCamera( CameraUpdateFactory.zoomTo( 12.0f ) );
             }
 
             @Override
@@ -128,6 +125,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
+        loadCH();
         /*LatLng destination = new LatLng(10.762427, 106.681228);
         GoogleDirection.withServerKey(DIRECTION_API_KEY)
                 .from(myPosition)
@@ -154,6 +152,32 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 });*/
     }
 
+    public void loadCH(){
+        Cursor result = db.getAllCH();
+        if (result.getCount()==0){
+            showText("Danh sách cửa hàng trống!");
+            return;
+        }
+        while (result.moveToNext()){
+            if (Integer.parseInt(result.getString(9)) > 0)
+                mMap.addMarker(new MarkerOptions().position(new LatLng(Double.parseDouble(result.getString(4)),Double.parseDouble(result.getString(5)))).title(result.getString(1)).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)));
+            else
+                mMap.addMarker(new MarkerOptions().position(new LatLng(Double.parseDouble(result.getString(4)),Double.parseDouble(result.getString(5)))).title(result.getString(1)).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+        }
+    }
+
+    private void checkPermission(){
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.ACCESS_FINE_LOCATION)) {
+            } else {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION},
+                        MY_LOCATION_REQUEST_CODE);
+            }}
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         if (requestCode == MY_LOCATION_REQUEST_CODE) {
@@ -165,5 +189,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 Toast.makeText(this,"Ứng dụng không thể hoạt động nếu không cho phép truy cập vị trí của thiết bị",Toast.LENGTH_LONG).show();
             }
         }
+    }
+
+    private void showText(String text){
+        Toast.makeText(MapsActivity.this, text, Toast.LENGTH_LONG);
     }
 }

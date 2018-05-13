@@ -13,7 +13,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "database.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     private static final String TABLE_NAME_BTS = "BANG_THAM_SO";
     private static final String BTS_COL_1 = "ID";
@@ -193,6 +193,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     private void setDataCH(SQLiteDatabase db) {
         inputCH(db,"Trà Sữa X-Cute","Đang cập nhât","176B Ngô Quyền, P. 8, Quận 10, TP. HCM","10.763338", "106.664779", "08:00","21:00","+84987783003","0","1");
-        inputCH(db,"Trà Sữa Bumba","Đang cập nhât","FM20 Tầng Hầm 1 Vạn Hạnh Mall, 11 Sư Vạn Hạnh, P. 12,  Quận 10, TP. HCM","10.770266", "106.669973", "08:00","22:00","+84987783003","1","1");
+        inputCH(db,"Trà Sữa Bumba","Đang cập nhât","FM20 Tầng Hầm 1 Vạn Hạnh Mall, 11 Sư Vạn Hạnh, P. 12,  Quận 10, TP. HCM","10.770266", "106.669973", "08:00","22:00","+02866805366","1","1");
     }
 }
