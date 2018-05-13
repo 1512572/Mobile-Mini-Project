@@ -2,6 +2,7 @@ package com.example.a1512572.mobileminiproject;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -18,8 +19,10 @@ import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.akexorcist.googledirection.DirectionCallback;
@@ -40,6 +43,8 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+
+import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,6 +67,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     PolylineOptions wayopt;
 
     DatabaseHelper db;
+
+    TextView textView;
 
 
     @Override
@@ -209,9 +216,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         final String status = result.getString(10);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        LayoutInflater inflater = this.getLayoutInflater();
+        View dialogContent =  inflater.inflate(R.layout.infobox, null);
+
+        TextView title = (TextView) dialogContent.findViewById(R.id.CHname);
+        TextView addrC = (TextView) dialogContent.findViewById(R.id.addrContent);
+        TextView descC = (TextView) dialogContent.findViewById(R.id.descContent);
         builder.setCancelable(true);
-        builder.setTitle(marker.getTitle());
-        builder.setMessage(marker.getSnippet() + "\n" + open + " - " + close + "\n" + phone + "\n" + type + "\n" + status);
+        title.setText(name);
+        addrC.setText(addr);
+        String updating = new String("Đang cập nhật mô tả...");
+        if (desc.equals(""))
+            descC.setText(updating);
+        else
+            descC.setText(desc);
+        builder.setView(dialogContent);
 
         if (type.equals("0")){
             builder.setPositiveButton("Yêu thích", new DialogInterface.OnClickListener() {
