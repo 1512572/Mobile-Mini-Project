@@ -2,6 +2,7 @@ package com.example.a1512572.mobileminiproject;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.location.Criteria;
 import android.location.Location;
@@ -11,6 +12,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.akexorcist.googledirection.DirectionCallback;
@@ -26,6 +28,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
@@ -59,7 +62,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        //Set map theme
+        try {
+            boolean success = googleMap.setMapStyle(
+                    MapStyleOptions.loadRawResourceStyle(
+                            this, R.raw.style_json));
 
+            if (!success) {}
+        } catch (Resources.NotFoundException e) {}
+
+        //Check permission
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
             if (ActivityCompat.shouldShowRequestPermissionRationale(this,
@@ -116,7 +128,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
-        LatLng destination = new LatLng(10.762427, 106.681228);
+        /*LatLng destination = new LatLng(10.762427, 106.681228);
         GoogleDirection.withServerKey(DIRECTION_API_KEY)
                 .from(myPosition)
                 .to(destination)
@@ -124,22 +136,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     @Override
                     public void onDirectionSuccess(Direction direction, String rawBody) {
                         if(direction.isOK()) {
-                            Toast.makeText(MapsActivity.this,"Success!",Toast.LENGTH_LONG).show();
+                            Toast.makeText(MapsActivity.this,"Gửi yêu cầu tìm đường thành công",Toast.LENGTH_LONG).show();
                             Route route = direction.getRouteList().get(0);
                             Leg leg = route.getLegList().get(0);
                             ArrayList<LatLng> pointList = leg.getDirectionPoint();
-                            PolylineOptions polylineOptions = DirectionConverter.createPolyline(MapsActivity.this, pointList, 5, Color.RED);
+                            PolylineOptions polylineOptions = DirectionConverter.createPolyline(MapsActivity.this, pointList, 10, Color.MAGENTA);
                             mMap.addPolyline(polylineOptions);
                         }
                         else
-                            Toast.makeText(MapsActivity.this,"Error!",Toast.LENGTH_LONG).show();
+                            Toast.makeText(MapsActivity.this,"Xuất hiện lỗi khi gửi yêu cầu tìm đường!",Toast.LENGTH_LONG).show();
                     }
 
                     @Override
                     public void onDirectionFailure(Throwable t) {
-                        Toast.makeText(MapsActivity.this,"Error!",Toast.LENGTH_LONG).show();
+                        Toast.makeText(MapsActivity.this,"Xuất hiện lỗi khi gửi yêu cầu tìm đường!",Toast.LENGTH_LONG).show();
                     }
-                });
+                });*/
     }
 
     @Override
