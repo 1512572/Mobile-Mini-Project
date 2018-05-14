@@ -22,6 +22,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -43,6 +44,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.squareup.picasso.Picasso;
 
 import org.w3c.dom.Text;
 
@@ -217,6 +219,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         final String phone = result.getString(8);
         final String type = result.getString(9);
         final String status = result.getString(10);
+        final String imageURL = result.getString(11);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
@@ -228,7 +231,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         TextView title = (TextView) dialogContent.findViewById(R.id.CHname);
         TextView addrC = (TextView) dialogContent.findViewById(R.id.addrContent);
         TextView descC = (TextView) dialogContent.findViewById(R.id.descContent);
+        ImageView imageView = (ImageView) dialogContent.findViewById(R.id.CHimage);
         builder.setCancelable(true);
+        Picasso.get().load(imageURL).into(imageView);
         title.setText(name);
         addrC.setText(addr);
         String openOrClose = "Đang mở cửa";
@@ -255,7 +260,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             builder.setPositiveButton("Yêu thích", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
-                    db.updateCH(id, name, desc, addr, lat, lng, open, close, phone, "1", status);
+                    db.updateCH(id, name, desc, addr, lat, lng, open, close, phone, "1", status, imageURL);
                     marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
                 }
             });
@@ -265,7 +270,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             builder.setPositiveButton("Hủy yêu thích", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
-                    db.updateCH(id, name, desc, addr, lat, lng, open, close, phone, "0", status);
+                    db.updateCH(id, name, desc, addr, lat, lng, open, close, phone, "0", status, imageURL);
                     marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
                 }
             });
