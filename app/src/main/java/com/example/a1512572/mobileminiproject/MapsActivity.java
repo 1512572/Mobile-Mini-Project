@@ -46,7 +46,9 @@ import com.google.android.gms.maps.model.PolylineOptions;
 
 import org.w3c.dom.Text;
 
+import java.sql.Date;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import static android.location.LocationManager.PASSIVE_PROVIDER;
@@ -151,6 +153,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                               return false;
                                           }
                                       });
+
     }
 
     public void loadCH(){
@@ -220,13 +223,28 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LayoutInflater inflater = this.getLayoutInflater();
         View dialogContent =  inflater.inflate(R.layout.infobox, null);
 
+        TextView ifOpen = (TextView) dialogContent.findViewById(R.id.isOpen);
+        TextView openTime = (TextView) dialogContent.findViewById(R.id.openTime);
         TextView title = (TextView) dialogContent.findViewById(R.id.CHname);
         TextView addrC = (TextView) dialogContent.findViewById(R.id.addrContent);
         TextView descC = (TextView) dialogContent.findViewById(R.id.descContent);
         builder.setCancelable(true);
         title.setText(name);
         addrC.setText(addr);
-        String updating = new String("Đang cập nhật mô tả...");
+        String openOrClose = "Đang mở cửa";
+        if (isOpen(open, close)){
+            ifOpen.setTextColor(Color.GREEN);
+            openOrClose = "Đang mở cửa";
+            ifOpen.setText(openOrClose);
+        }
+        else {
+            ifOpen.setTextColor(Color.RED);
+            openOrClose = "Đóng cửa";
+            ifOpen.setText(openOrClose);
+        }
+        String ot = open + " : " + close;
+        openTime.setText(ot);
+        String updating = "Đang cập nhật mô tả";
         if (desc.equals(""))
             descC.setText(updating);
         else
@@ -272,6 +290,29 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         builder.show();
 
     }
+
+    private boolean isOpen(String open, String close){
+
+        int openh = Integer.parseInt(open.subSequence(0,2).toString());
+        int openm = Integer.parseInt(open.subSequence(3,5).toString());
+
+        int closeh = Integer.parseInt(close.subSequence(0,2).toString());
+        int closem = Integer.parseInt(close.subSequence(3,5).toString());
+
+        Calendar time = Calendar.getInstance();
+        int hour = time.get(Calendar.HOUR_OF_DAY);
+        int min = time.get(Calendar.MINUTE);
+
+        if (((closeh > openh) || (closeh == openh && closem > openm)) && ((hour > openh) || (hour == openh && min >= openm)) && ((hour < closeh) || (hour == closeh && min <closem)))
+            return true;
+
+        if ((closeh < openh || (closeh == openh && closem < openm)) && !((hour > closeh) || (hour == closeh && min > closem)) && !((hour < openh) || (hour == openh && min <openm)))
+            return true;
+
+        return false;
+
+    }
+
 
     //////
 
